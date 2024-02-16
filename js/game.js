@@ -1,11 +1,11 @@
-//By Mattias Dahlgren (mattias@gnarp.se) 2012
+//By Mattias Dahlgren (mattias.dahlgren@miun.se) 2024
 
 //Variables
 var screenWidth = 400;
 var screenHeight = 700;
 var ctx;
 var canvas;
-var FPS = 30;
+var FPS = 40;
 var mapPosition;
 var SCROLL_SPEED = 1;
 var isColliding = 0;
@@ -34,9 +34,10 @@ var playerScore;
 var playerAmmo;
 var PLAYER_AMMO = 40;
 var playerLives;
-var PLAYER_LIVES = 3;
+var PLAYER_LIVES = 1;
 var startText;
-var highscore = 999;
+var highscore = 99;
+var playerName = null;
 
 //Bullet
 var bulletSize = 6;
@@ -54,8 +55,8 @@ var enemy = new Array();
 var enemyPositionX;
 var enemyPositionY;
 var ENEMY_SIZE = 28;
-var ENEMY_SPEED = 4;
-var ENEMY_SPEED_MULTIPLIER = 1;
+var ENEMY_SPEED = 5;
+var ENEMY_SPEED_MULTIPLIER = 2;
 
 //Pickups
 var pickups = new Array();
@@ -82,8 +83,8 @@ var cloud3 = new Image();
 
 //Event handlers
 //Prevent display before image has loaded
-$(document).ready(function(){ 
-    init();   
+$(document).ready(function () {
+	init();
 });
 
 //Functions
@@ -92,7 +93,7 @@ function init() {
 	canvas = document.getElementById('c');
 	canvas.width = screenWidth;
 	canvas.height = screenHeight;
-	ctx = canvas.getContext('2d'); 
+	ctx = canvas.getContext('2d');
 
 	//Load XML
 	readFile(1);
@@ -101,13 +102,16 @@ function init() {
 	loadImages();
 
 	//Timer interval - FPS
-	setInterval(update, 1000/FPS);
+	setInterval(update, 1000 / FPS);
 
 	//Player init position
 	placePlayer();
-	
+
 	//Read highscore
 	readHighscore();
+
+	// Display highscorelist
+	displayHighScoreList();
 
 	//Initial values
 	playerScore = 0;
@@ -138,7 +142,7 @@ function placePlayer() {
 	xPos = (screenWidth / 2) - (playerWidth / 2);
 	yPos = screenHeight - playerHeight * 4;
 	//Initial map position
-	mapPosition = screenHeight - 5000;	
+	mapPosition = screenHeight - 5000;
 
 	//displayStartText();
 }
@@ -146,47 +150,56 @@ function placePlayer() {
 function displayPreStart() {
 	ctx.font = '120px Impact';
 	ctx.textAlign = 'center';
-	ctx.fillStyle = "#000"; 
-  	ctx.fillText("1940", (screenWidth / 2) + SHADOW_DISTANCE, (screenHeight / 3) + SHADOW_DISTANCE); 
-  	ctx.fillStyle = "#fff"; 
-  	ctx.fillText("1940", (screenWidth / 2), (screenHeight / 3)); 
-
-  	ctx.font = '42px Impact';
-  	ctx.fillStyle = "#000";
-  	ctx.fillText("PRESS ANY KEY", (screenWidth / 2) + SHADOW_DISTANCE / 2, (screenHeight / 2 ) + SHADOW_DISTANCE / 2); 
-  	ctx.fillText("TO START", (screenWidth / 2) + SHADOW_DISTANCE / 2, (screenHeight / 2 ) + 50 + SHADOW_DISTANCE / 2); 
+	ctx.fillStyle = "#000";
+	ctx.fillText("1940", (screenWidth / 2) + SHADOW_DISTANCE, (screenHeight / 3) + SHADOW_DISTANCE);
 	ctx.fillStyle = "#fff";
-  	ctx.fillText("PRESS ANY KEY", screenWidth / 2, (screenHeight / 2 )); 
-  	ctx.fillText("TO START", screenWidth / 2, (screenHeight / 2 ) + 50); 
-  	//Reset values
-  	playerScore = 0;
-  	playerLives = PLAYER_LIVES;
-  	playerAmmo = PLAYER_AMMO;
-  	level = 1;
+	ctx.fillText("1940", (screenWidth / 2), (screenHeight / 3));
+
+	ctx.font = '42px Impact';
+	ctx.fillStyle = "#000";
+	ctx.fillText("PRESS ANY KEY", (screenWidth / 2) + SHADOW_DISTANCE / 2, (screenHeight / 2) + SHADOW_DISTANCE / 2);
+	ctx.fillText("TO START", (screenWidth / 2) + SHADOW_DISTANCE / 2, (screenHeight / 2) + 50 + SHADOW_DISTANCE / 2);
+	ctx.fillStyle = "#fff";
+	ctx.fillText("PRESS ANY KEY", screenWidth / 2, (screenHeight / 2));
+	ctx.fillText("TO START", screenWidth / 2, (screenHeight / 2) + 50);
+	//Reset values
+	playerScore = 0;
+	playerLives = PLAYER_LIVES;
+	playerAmmo = PLAYER_AMMO;
+	level = 1;
 }
 
 function displayStartText() {
+
+	while (playerName == null || playerName == "") {
+		playerName = prompt("Skriv ditt namn", "");
+	}
+
+	// Delete all key input
+	keys = {};
+
+
 	isScrolling = false;
 	ctx.textAlign = 'center';
 	ctx.font = '64px Impact';
 
-	ctx.fillStyle = "#000"; 
-  	ctx.fillText("LEVEL " + level, (screenWidth / 2) + SHADOW_DISTANCE / 2, (screenHeight / 2) + SHADOW_DISTANCE / 2); 
-	ctx.fillStyle = "#fff"; 
-  	ctx.fillText("LEVEL " + level, (screenWidth / 2), (screenHeight / 2)); 
-
-  	ctx.font = '42px Impact';
-	
 	ctx.fillStyle = "#000";
-  	ctx.fillText("GET READY!", (screenWidth / 2) + SHADOW_DISTANCE / 2, (screenHeight / 2 + 80) + SHADOW_DISTANCE / 2); 
-  	ctx.fillStyle = "#fff";
-  	ctx.fillText("GET READY!", (screenWidth / 2), (screenHeight / 2 + 80)); 
-  	
-  	//Read highscore
-  	readHighscore();
+	ctx.fillText("LEVEL " + level, (screenWidth / 2) + SHADOW_DISTANCE / 2, (screenHeight / 2) + SHADOW_DISTANCE / 2);
+	ctx.fillStyle = "#fff";
+	ctx.fillText("LEVEL " + level, (screenWidth / 2), (screenHeight / 2));
 
-  	//Timeout
-  	window.setTimeout(function() { startScroll() }, 500);
+	ctx.font = '42px Impact';
+
+	ctx.fillStyle = "#000";
+	ctx.fillText("GET READY!", (screenWidth / 2) + SHADOW_DISTANCE / 2, (screenHeight / 2 + 80) + SHADOW_DISTANCE / 2);
+	ctx.fillStyle = "#fff";
+	ctx.fillText("GET READY!", (screenWidth / 2), (screenHeight / 2 + 80));
+
+	//Read highscore
+	readHighscore();
+
+	//Timeout
+	window.setTimeout(function () { startScroll() }, 500);
 }
 
 function playEnd() {
@@ -197,21 +210,21 @@ function playEnd() {
 	ctx.textAlign = 'center';
 	ctx.font = '54px Impact';
 
-	ctx.fillStyle = "#000"; 
-  	ctx.fillText("GAME OVER!", (screenWidth / 2) + SHADOW_DISTANCE / 2, (screenHeight / 2) + SHADOW_DISTANCE / 2); 
-	ctx.fillStyle = "#fff"; 
-  	ctx.fillText("GAME OVER!", (screenWidth / 2), (screenHeight / 2)); 
-
-  	ctx.font = '42px Impact';
-	
 	ctx.fillStyle = "#000";
-  	ctx.fillText("YOUR SCORE: " + playerScore, (screenWidth / 2) + SHADOW_DISTANCE / 2, (screenHeight / 2 + 80) + SHADOW_DISTANCE / 2); 
-  	ctx.fillStyle = "#fff";
-  	ctx.fillText("YOUR SCORE: " + playerScore, (screenWidth / 2), (screenHeight / 2 + 80)); 
+	ctx.fillText("GAME OVER!", (screenWidth / 2) + SHADOW_DISTANCE / 2, (screenHeight / 2) + SHADOW_DISTANCE / 2);
+	ctx.fillStyle = "#fff";
+	ctx.fillText("GAME OVER!", (screenWidth / 2), (screenHeight / 2));
+
+	ctx.font = '42px Impact';
+
+	ctx.fillStyle = "#000";
+	ctx.fillText("YOUR SCORE: " + playerScore, (screenWidth / 2) + SHADOW_DISTANCE / 2, (screenHeight / 2 + 80) + SHADOW_DISTANCE / 2);
+	ctx.fillStyle = "#fff";
+	ctx.fillText("YOUR SCORE: " + playerScore, (screenWidth / 2), (screenHeight / 2 + 80));
 }
 
 function nextLevel() {
-	level ++;
+	level++;
 	playerScore += 100;
 	playerAmmo += 20;
 	placePlayer();
@@ -228,50 +241,43 @@ function startScroll() {
 }
 
 function update() {
-	checkInput();	
+	checkInput();
 	checkBullets();
 	checkEnemies();
 	spawnEnemies();
 	spawnPickups();
 	spawnCloud();
-	
+
 	//Check collision pickup vs Player
-	for(var i = 0; i < pickups.length; i++)
-	{
-		if(checkCollisionPickup(pickups[i]))
-		{
+	for (var i = 0; i < pickups.length; i++) {
+		if (checkCollisionPickup(pickups[i])) {
 			destroyPickup(i, pickups[i][2]);
 		}
-	}	
+	}
 
 	//Check collision enemy vs Player
-	for(var i = 0; i < enemies.length; i++)
-	{
-		if(checkCollisionPlayer(enemies[i]))
-		{
+	for (var i = 0; i < enemies.length; i++) {
+		if (checkCollisionPlayer(enemies[i])) {
 			destroyPlayer();
 		}
 	}
 
 	//Check collision enemy vs bullets
-	for(var i = 0; i < enemies.length; i++)
-	{
-		if(checkCollisionBullet(i))
-		{
+	for (var i = 0; i < enemies.length; i++) {
+		if (checkCollisionBullet(i)) {
 			//Not
 		}
 	}
 
 	//Scroll background
-	if(isScrolling == true && isPlaying == true) { mapPosition = mapPosition + SCROLL_SPEED; }
-	
+	if (isScrolling == true && isPlaying == true) { mapPosition = mapPosition + SCROLL_SPEED; }
+
 	//Finished?
-	if(mapPosition > 0)
-	{
+	if (mapPosition > 0) {
 		mapPosition = 0;
 		nextLevel();
 	}
-	
+
 	//Draw to screen
 	draw();
 }
@@ -282,67 +288,55 @@ function draw() {
 	ctx.clearRect(0, 0, screenWidth, screenHeight);
 
 	//Draw the map
-	ctx.drawImage(map,0,mapPosition);
+	ctx.drawImage(map, 0, mapPosition);
 
 	//Draw pickups
-	for(var i = 0; i < pickups.length; i++)
-	{
-		if(pickups[i][2] == 0)
-		{
+	for (var i = 0; i < pickups.length; i++) {
+		if (pickups[i][2] == 0) {
 			ctx.drawImage(pickupShadow, pickups[i][0] + SHADOW_DISTANCE / 2, pickups[i][1] + SHADOW_DISTANCE / 2); //Shadow
 			ctx.drawImage(ammoBox, pickups[i][0], pickups[i][1]);
-		}	
-		else if(pickups[i][2] == 1)
-		{
+		}
+		else if (pickups[i][2] == 1) {
 			ctx.drawImage(pickupShadow, pickups[i][0] + SHADOW_DISTANCE / 2, pickups[i][1] + SHADOW_DISTANCE / 2); //Shadow
 			ctx.drawImage(bonusBox, pickups[i][0], pickups[i][1]);
 		}
-		else
-		{
+		else {
 			//console.log("Error: " + pickups[i][2]);
 		}
 	}
 
 	//Draw clouds - Bottom layer
-	for(var i = 0; i < clouds.length; i++)
-	{
-		if(clouds[i][3] == 1) {
-			if(clouds[i][2] == 0)
-			{
+	for (var i = 0; i < clouds.length; i++) {
+		if (clouds[i][3] == 1) {
+			if (clouds[i][2] == 0) {
 				ctx.drawImage(cloud1, clouds[i][0], clouds[i][1]);
-			}	
-			else if(clouds[i][2] == 1)
-			{
+			}
+			else if (clouds[i][2] == 1) {
 				ctx.drawImage(cloud2, clouds[i][0], clouds[i][1]);
 			}
-			else
-			{
+			else {
 				ctx.drawImage(cloud3, clouds[i][0], clouds[i][1]);
 			}
-		}	
+		}
 	}
 
 	//Draw clouds - Mid layer
-	for(var i = 0; i < clouds.length; i++)
-	{
-		if(clouds[i][3] == 2) {
-			if(clouds[i][2] == 0)
-			{
+	for (var i = 0; i < clouds.length; i++) {
+		if (clouds[i][3] == 2) {
+			if (clouds[i][2] == 0) {
 				ctx.drawImage(cloud1, clouds[i][0], clouds[i][1]);
-			}	
-			else if(clouds[i][2] == 1)
-			{
+			}
+			else if (clouds[i][2] == 1) {
 				ctx.drawImage(cloud2, clouds[i][0], clouds[i][1]);
 			}
-			else
-			{
+			else {
 				ctx.drawImage(cloud3, clouds[i][0], clouds[i][1]);
 			}
-		}	
-	}	
+		}
+	}
 
 	//Draw player
-	if(isPlaying) {
+	if (isPlaying) {
 		ctx.drawImage(playerShadow, xPos + SHADOW_DISTANCE, yPos + SHADOW_DISTANCE); //Shadow
 		ctx.drawImage(player, xPos, yPos);
 	}
@@ -354,38 +348,31 @@ function draw() {
 	}
 
 	//Draw enemies
-	for(var i = 0; i < enemies.length; i++)
-	{
-		if(enemies[i][3] == 1)
-		{
+	for (var i = 0; i < enemies.length; i++) {
+		if (enemies[i][3] == 1) {
 			ctx.drawImage(redPlaneUpShadow, enemies[i][0] + SHADOW_DISTANCE, enemies[i][1] + SHADOW_DISTANCE); //Shadow
 			ctx.drawImage(redPlane, enemies[i][0], enemies[i][1]);
 		}
-		else
-		{
+		else {
 			ctx.drawImage(enemyShadow, enemies[i][0] + SHADOW_DISTANCE, enemies[i][1] + SHADOW_DISTANCE); //Shadow
 			ctx.drawImage(redPlaneUp, enemies[i][0], enemies[i][1]);
-		}	
+		}
 	}
 
 	//Draw clouds - Top layer
-	for(var i = 0; i < clouds.length; i++)
-	{
-		if(clouds[i][3] == 3) {
-			if(clouds[i][2] == 0)
-			{
+	for (var i = 0; i < clouds.length; i++) {
+		if (clouds[i][3] == 3) {
+			if (clouds[i][2] == 0) {
 				ctx.drawImage(cloud1, clouds[i][0], clouds[i][1]);
-			}	
-			else if(clouds[i][2] == 1)
-			{
+			}
+			else if (clouds[i][2] == 1) {
 				ctx.drawImage(cloud2, clouds[i][0], clouds[i][1]);
 			}
-			else
-			{
+			else {
 				ctx.drawImage(cloud3, clouds[i][0], clouds[i][1]);
 			}
-		}	
-	}		
+		}
+	}
 
 	//Display HUD
 	displayHud();
@@ -393,25 +380,21 @@ function draw() {
 	//Draw debug info
 	//ctx.fillStyle = "#fff"; // Set color to black
 	//ctx.font = '16px Verdana';
-  	//ctx.fillText("Pos" + mapPosition, screenWidth / 2, (screenHeight - 100));
+	//ctx.fillText("Pos" + mapPosition, screenWidth / 2, (screenHeight - 100));
 
-  	if(startText > 0 && isDead == false)
-  	{
-  		displayStartText();
-  		startText --;
-  	}
-	
-	if(isPlaying == false && isDead == false)
-	{
+	if (startText > 0 && isDead == false) {
+		displayStartText();
+		startText--;
+	}
+
+	if (isPlaying == false && isDead == false) {
 		displayPreStart();
 	}
 
-	if(isDead == true && isDeadText > 0)
-	{
+	if (isDead == true && isDeadText > 0) {
 		playEnd();
-		isDeadText --;
-		if(isDeadText < 1)
-		{
+		isDeadText--;
+		if (isDeadText < 1) {
 			isDead = false;
 			startText = 0;
 		}
@@ -423,28 +406,27 @@ function draw() {
 //Keyboard input
 //Keyboard event handler
 $(document).keydown(function (e) {
-	
-	if(isDead == false)
-	{
-		if(isPlaying == false) {
+
+	if (isDead == false) {
+		if (isPlaying == false) {
 			isPlaying = true;
 			startText = 120;
 			displayStartText();
-		}	
+		}
 	}
-	
-    keys[e.which] = true;
+
+	keys[e.which] = true;
 });
 
 $(document).keyup(function (e) {
-    delete keys[e.which];
+	delete keys[e.which];
 });
 
 function fireBullet() {
 	bulletshot = [(xPos + (playerWidth / 2) - bulletSize / 2), yPos - 10];
-	bullets.push (bulletshot);
+	bullets.push(bulletshot);
 	bulletTimer = BULLLET_TIMEOUT;
-	playerAmmo --;
+	playerAmmo--;
 	Sound.play("shoot");
 }
 
@@ -456,69 +438,60 @@ function checkInput() {
 	//Check key input
 	for (var i in keys) {
 		if (!keys.hasOwnProperty(i)) continue;
-		if(i == 37)
-		{
+		if (i == 37) {
 			xPos -= PLAYER_SPEED;
 		}
-		if(i == 39)
-		{
+		if (i == 39) {
 			xPos += PLAYER_SPEED;
 		}
-		if(i == 38)
-		{
+		if (i == 38) {
 			yPos -= PLAYER_SPEED / 2;
 		}
-		if(i == 40)
-		{
+		if (i == 40) {
 			yPos += PLAYER_SPEED / 2;
 		}
-		if(i == 32)
-		{
-			if(bulletTimer == 0)
-			{
-				if(playerAmmo > 0) {
+		if (i == 32) {
+			if (bulletTimer == 0) {
+				if (playerAmmo > 0) {
 					fireBullet();
 				}
-				else
-				{
+				else {
 					missFire();
 				}
-			}			
+			}
 		}
-    }
+	}
 }
 
 function checkBullets() {
 	//Check if ready to fire
-	if(bulletTimer > 0) bulletTimer--;
-	
+	if (bulletTimer > 0) bulletTimer--;
+
 	//Check out of bounds
-	if(xPos < 0) xPos = 0;
-	if(xPos > screenWidth - playerWidth) xPos = screenWidth - playerWidth;
-	
-	if(yPos < 0) yPos = 0;
-	if(yPos > screenHeight - playerHeight) yPos = screenHeight - playerHeight;
-	
+	if (xPos < 0) xPos = 0;
+	if (xPos > screenWidth - playerWidth) xPos = screenWidth - playerWidth;
+
+	if (yPos < 0) yPos = 0;
+	if (yPos > screenHeight - playerHeight) yPos = screenHeight - playerHeight;
+
 	//Calculate bullet positions
 	for (var i = 0; i < bullets.length; i++) {
 		bulletPosition = bullets[i][1];
 		//If out of bounds - remove
-		if(bulletPosition < 0)
-		{
-			bullets.splice(i,1);
+		if (bulletPosition < 0) {
+			bullets.splice(i, 1);
 		}
-		else
-		{
+		else {
 			bullets[i][1] = bulletPosition - bulletSpeed;
-		}		
+		}
 	}
 }
 
 function checkEnemies() {
 	//Check out of bounds
 	for (var i = 0; i < enemies.length; i++) {
-		if((enemies[i][1] > screenHeight + 100) || (enemies[i][1] < -70))
-			enemies.splice(i,1);
+		if ((enemies[i][1] > screenHeight + 100) || (enemies[i][1] < -70))
+			enemies.splice(i, 1);
 	}
 }
 
@@ -527,20 +500,16 @@ function spawnEnemies() {
 	spawnEnemy();
 
 	//Calculate enemy position
-	for(var i = 0; i < enemies.length; i++)
-	{
+	for (var i = 0; i < enemies.length; i++) {
 		enemyPositionY = enemies[i][1];
 		var boost = 1;
-		if(level > 1)
-		{
+		if (level > 1) {
 			boost += (ENEMY_SPEED_MULTIPLIER * level);
 		}
-		if(enemies[i][3] == 1)
-		{
+		if (enemies[i][3] == 1) {
 			enemyPositionY = enemyPositionY + (enemies[i][2] + boost);
 		}
-		else
-		{
+		else {
 			enemyPositionY = enemyPositionY - (enemies[i][2] + boost);
 		}
 
@@ -554,63 +523,55 @@ function spawnEnemy() {
 		var tempYPos;
 		var tempPos = enemyData[i][0];
 
-		if(tempPos == mapPosition)
-		{
+		if (tempPos == mapPosition) {
 			var tempXPos = enemyData[i][1];
 			var tempType = enemyData[i][2];
 			var tempSpeed = enemyData[i][3];
 			//var tempSpeed = 1;
 			var tempDirection = enemyData[i][4];
-			if(tempDirection == 1)
-			{
+			if (tempDirection == 1) {
 
 				tempYPos = 0 - ENEMY_SIZE;
 			}
-			else
-			{
+			else {
 				tempYPos = screenHeight + ENEMY_SIZE;
 			}
 			enemy = [tempXPos, tempYPos, tempSpeed, tempDirection];
-			enemies.push (enemy);			
-		}		
-	}	
+			enemies.push(enemy);
+		}
+	}
 
 	//Random enemies
-	if(isPlaying == true && level > 1)
-	{
+	if (isPlaying == true && level > 1) {
 		var spawnSeed = 500 - (level * 2);
-		if(spawnSeed < 100)
+		if (spawnSeed < 100)
 			spawnSeed = 100;
 
 		var randEnemy = Math.floor((Math.random() * spawnSeed) + 1);
 
-		if(randEnemy == 1)
-		{
+		if (randEnemy == 1) {
 			var randomX = Math.floor((Math.random() * (screenWidth - playerWidth)) + 1);
-			var randDir = Math.floor((Math.random() * 2) + 1) -1;
+			var randDir = Math.floor((Math.random() * 2) + 1) - 1;
 			var randSpeed = Math.floor((Math.random() * 2) + 1);
 			var randY;
-			if(randDir == 0)
-			{
+			if (randDir == 0) {
 				randY = screenHeight + ENEMY_SIZE;
 			}
-			else
-			{
+			else {
 				randY = 0 - ENEMY_SIZE;
 			}
 			enemy = [randomX, randY, randSpeed, randDir];
-			enemies.push (enemy);
+			enemies.push(enemy);
 		}
 	}
-	
+
 }
 
 function spawnPickups() {
 	spawnPickup();
 
 	//Calculate pickup position
-	for(var i = 0; i < pickups.length; i++)
-	{
+	for (var i = 0; i < pickups.length; i++) {
 		var pickupPositionY = pickups[i][1];
 		pickupPositionY = pickupPositionY + 1;
 		pickups[i][1] = pickupPositionY;
@@ -620,25 +581,24 @@ function spawnPickups() {
 function spawnPickup() {
 	//Check if avaible
 	for (var i = 0; i < pickupData.length; i++) {
-		
+
 		var tempPos = pickupData[i][0];
 
-		if(tempPos == mapPosition)
-		{
+		if (tempPos == mapPosition) {
 			var tempXPos = pickupData[i][1];
 			var tempYPos;
 			tempYPos = - PICKUP_SIZE;
 			var tempType = pickupData[i][2];
 
 			pickup = [tempXPos, tempYPos, tempType];
-			pickups.push (pickup);			
-		}		
-	}	
+			pickups.push(pickup);
+		}
+	}
 }
 
 function spawnCloud() {
 	var spawn = Math.floor((Math.random() * CLOUD_SEED) + 1);
-	if(spawn == 1) {
+	if (spawn == 1) {
 		var cloudx = Math.floor((Math.random() * (screenWidth + 100)) - 50);
 		var cloudtype = Math.floor((Math.random() * 3) + 1);
 		var cloudz = Math.floor((Math.random() * 3) + 1);
@@ -646,28 +606,27 @@ function spawnCloud() {
 		var cloud = new Array();
 
 		cloud = [cloudx, cloudy, cloudtype, cloudz];
-		clouds.push (cloud);
+		clouds.push(cloud);
 	}
 
 	//Calculate pickup position
-	for(var i = 0; i < clouds.length; i++)
-	{
+	for (var i = 0; i < clouds.length; i++) {
 		var cloudPositionY = clouds[i][1];
 		cloudPositionY = cloudPositionY + clouds[i][3];
 		clouds[i][1] = cloudPositionY;
 
 		//Remove cloud
-		if(cloudPositionY > screenHeight + 550)
-			clouds.splice(i,1);
+		if (cloudPositionY > screenHeight + 550)
+			clouds.splice(i, 1);
 	}
 
 }
 
 function collides(ax, ay, bx, by, awidth, aheight, bwidth, bheight) {
- return ax < bx + bwidth &&
-         ax + awidth > bx &&
-         ay < by + bheight &&
-         ay + aheight > by;     
+	return ax < bx + bwidth &&
+		ax + awidth > bx &&
+		ay < by + bheight &&
+		ay + aheight > by;
 }
 
 function checkCollisionPlayer(enemy) {
@@ -679,15 +638,13 @@ function checkCollisionPlayer(enemy) {
 	isCollidingX = Math.abs(xPos - enemyPositionX);
 	isCollidingY = Math.abs(yPos - enemyPositionY);
 
-	if(isCollidingX < ENEMY_SIZE && isCollidingY < ENEMY_SIZE)
-	{
+	if (isCollidingX < ENEMY_SIZE && isCollidingY < ENEMY_SIZE) {
 		isColliding = true;
 	}
-	else
-	{
+	else {
 		isColliding = false;
 	}
-	
+
 	return isColliding;
 }
 
@@ -699,15 +656,13 @@ function checkCollisionPickup(pickup) {
 	isCollidingX = Math.abs(xPos - pickupPositionX);
 	isCollidingY = Math.abs(yPos - pickupPositionY);
 
-	if(isCollidingX < PICKUP_SIZE && isCollidingY < PICKUP_SIZE)
-	{
+	if (isCollidingX < PICKUP_SIZE && isCollidingY < PICKUP_SIZE) {
 		isColliding = true;
 	}
-	else
-	{
+	else {
 		isColliding = false;
 	}
-	
+
 	return isColliding;
 }
 
@@ -721,8 +676,7 @@ function checkCollisionBullet(enemyindex) {
 		var bulletPositionX = bullets[i][0];
 		var bulletPositionY = bullets[i][1];
 
-		if(collides(enemyPositionX, enemyPositionY, bulletPositionX, bulletPositionY, ENEMY_SIZE, ENEMY_SIZE, bulletSize, bulletSize))
-		{
+		if (collides(enemyPositionX, enemyPositionY, bulletPositionX, bulletPositionY, ENEMY_SIZE, ENEMY_SIZE, bulletSize, bulletSize)) {
 			destroyEnemy(enemyindex);
 			destroyBullet(i);
 		}
@@ -735,54 +689,82 @@ function destroyPlayer() {
 	pickups = [];
 	clouds = [];
 	bullets = [];
-	
+
 	playerAmmo += 5;
 
 	Sound.play("boom");
 
 	//Remove Life
-	playerLives --;
+	playerLives--;
 
-	if(playerLives < 1)
-	{
+	if (playerLives < 1) {
 		isDead = true;
 		startText = 0;
-		//If Highscore
-		if(playerScore > highscore)
-		{	
-			storeHighscore(playerScore);
+
+		// Check if highscore
+		if (playerScore == highscore) {
+			storeHighscore(playerName, playerScore);
 		}
+
+		// Remove name
+		playerName = null;
 		playEnd();
 	}
-		
+
 	//Place player at bottom
 	startText = 120;
 	placePlayer();
 }
 
-function destroyEnemy(enemyindex){
+function destroyEnemy(enemyindex) {
 	enemies.splice(enemyindex, 1);
 	playerScore += 10;
+
+	// Check if highscore
+	if (playerScore > highscore) {
+		highscore = playerScore;
+	}
 	Sound.play("explode");
 }
 
-function destroyBullet(bulletindex){
+function destroyBullet(bulletindex) {
 	bullets.splice(bulletindex, 1);
 }
 
-function destroyPickup(pickupindex, pickuptype){
+function destroyPickup(pickupindex, pickuptype) {
 	// Pickuptype 0 = ammo, 1 = bonus
-	if(pickuptype == 0)
-	{
+	if (pickuptype == 0) {
 		Sound.play("reload");
 		playerAmmo += 10;
 	}
-		
-	if(pickuptype == 1)
-	{	
+
+	if (pickuptype == 1) {
 		playerScore += 50;
 		Sound.play("bonus");
 	}
-		
+
 	pickups.splice(pickupindex, 1);
+}
+
+function displayHighScoreList() {
+	const highscoreList = document.getElementById('highscore-list');
+
+	// Fetch highscore from server
+	fetch('highscore.php').
+		then(response => response.json()).
+		then(data => {
+			// Sort array by score
+			data.sort(function (a, b) {
+				return b.score - a.score;
+			});
+
+			// Shorten data to 5 values
+			data = data.slice(0, 5);
+
+			// Display highscore
+			highscoreList.innerHTML = data.map((score, i) => {
+				return `<p>${score.score} - ${score.name}</p>`;
+			}).join('');
+
+		});
 }
