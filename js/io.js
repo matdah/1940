@@ -50,18 +50,23 @@ $.ajaxSetup({
 	cache: false
 });
 function readHighscore() {
-	// Fetch highscore from server
-	fetch('highscore.php').
-		then(response => response.json()).
-		then(data => {
-			// Sort array by score
-			data.sort(function (a, b) {
-				return b.score - a.score;
-			});
+	// Read from localstorage
+	let highscore = JSON.parse(localStorage.getItem("highscores"));
 
-			// Return highscore
-			returnHighscore(data[0].score)
-		});
+	if (highscore == null) {
+		returnHighscore(0);
+	} else {
+		// Get highest score
+		let highest = 0;
+		for (let i = 0; i < highscore.length; i++) {
+			if (highscore[i].score > highest) {
+				highest = highscore[i].score;
+			}
+		}
+
+		console.log("Highscore: " + highest);
+		returnHighscore(highest);
+	}
 }
 
 function returnHighscore(data) {
@@ -70,27 +75,34 @@ function returnHighscore(data) {
 function storeHighscore(newscore, playerName) {
 	console.log("Saving...");
 
-	// Save highscore to server
-	// New form data
-	var formData = new FormData();
-	formData.append("score", newscore);
-	formData.append("playerName", playerName);
+	let newItem = {
+		score: newscore,
+		name: playerName
+	};
 
-	// Send data to server
-	fetch('highscore.php', {
-		method: 'POST',
-		body: formData
-	}).
-		then(response => response.json()).
-		then(data => {
-			// Sort array by score
-			data.sort(function (a, b) {
-				return b.score - a.score;
-			});
+	// Convert to JSON
+	let json = JSON.stringify(newItem);
 
-			// Return highscore
-			storedHighscore(data[0].score)
-		});
+	// Read from localstorage
+	let storedscores = JSON.parse(localStorage.getItem("highscores"));
+
+	if (storedscores == null) {
+		storedscores = [];
+
+		// Save to localstorage
+		localStorage.setItem("highscores", JSON.stringify(storedscores));
+	}
+
+	// Add item to storedscores
+	storedscores.push(json);
+
+	// Sort by score
+	storedscores.sort(function (a, b) {
+		return b.score - a.score;
+	});
+
+	// Save to localstorage
+	localStorage.setItem("highscores", JSON.stringify(storedscores));
 }
 
 function storedHighscore(newscore) {
