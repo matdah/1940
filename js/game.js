@@ -398,9 +398,7 @@ function draw() {
 			isDead = false;
 			startText = 0;
 		}
-
 	}
-
 }
 
 //Keyboard input
@@ -703,7 +701,7 @@ function destroyPlayer() {
 
 		// Check if highscore
 		if (playerScore == highscore) {
-			storeHighscore(playerName, playerScore);
+			storeHighscore(playerScore, playerName);
 		}
 
 		// Remove name
@@ -747,24 +745,21 @@ function destroyPickup(pickupindex, pickuptype) {
 }
 
 function displayHighScoreList() {
-	const highscoreList = document.getElementById('highscore-list');
+	const highscoreListEl = document.getElementById("highscore-list");
+	// Read from localstorage
+	let highscores = JSON.parse(localStorage.getItem("highscores"));
 
-	// Fetch highscore from server
-	fetch('highscore.php').
-		then(response => response.json()).
-		then(data => {
-			// Sort array by score
-			data.sort(function (a, b) {
-				return b.score - a.score;
-			});
-
-			// Shorten data to 5 values
-			data = data.slice(0, 5);
-
-			// Display highscore
-			highscoreList.innerHTML = data.map((score, i) => {
-				return `<p>${score.score} - ${score.name}</p>`;
-			}).join('');
-
+	if (highscores != null) {
+		// Sort by score
+		highscores.sort(function (a, b) {
+			return b.score - a.score;
 		});
+
+		// Display highscorelist
+		highscoreListEl.innerHTML = "";
+
+		for (let i = 0; i < highscores.length; i++) {
+			highscoreListEl.innerHTML += "<p>" + highscores[i].name + " - " + highscores[i].score + "</p>";
+		}
+	}
 }

@@ -50,17 +50,20 @@ $.ajaxSetup({
 	cache: false
 });
 function readHighscore() {
+	console.log("Reading highscore...");
 	// Read from localstorage
-	let highscore = JSON.parse(localStorage.getItem("highscores"));
+	let highscores = JSON.parse(localStorage.getItem("highscores"));
 
-	if (highscore == null) {
+	console.table(highscores);
+
+	if (highscores == null) {
 		returnHighscore(0);
 	} else {
 		// Get highest score
-		let highest = 0;
-		for (let i = 0; i < highscore.length; i++) {
-			if (highscore[i].score > highest) {
-				highest = highscore[i].score;
+		let highest = 3;
+		for (let i = 0; i < highscores.length; i++) {
+			if (highscores[i].score > highest) {
+				highest = highscores[i].score;
 			}
 		}
 
@@ -75,13 +78,10 @@ function returnHighscore(data) {
 function storeHighscore(newscore, playerName) {
 	console.log("Saving...");
 
-	let newItem = {
+	let newScore = {
 		score: newscore,
 		name: playerName
 	};
-
-	// Convert to JSON
-	let json = JSON.stringify(newItem);
 
 	// Read from localstorage
 	let storedscores = JSON.parse(localStorage.getItem("highscores"));
@@ -94,7 +94,7 @@ function storeHighscore(newscore, playerName) {
 	}
 
 	// Add item to storedscores
-	storedscores.push(json);
+	storedscores.push(newScore);
 
 	// Sort by score
 	storedscores.sort(function (a, b) {
@@ -103,6 +103,9 @@ function storeHighscore(newscore, playerName) {
 
 	// Save to localstorage
 	localStorage.setItem("highscores", JSON.stringify(storedscores));
+
+	// Display highscorelist
+	displayHighScoreList();
 }
 
 function storedHighscore(newscore) {
