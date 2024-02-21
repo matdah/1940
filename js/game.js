@@ -151,9 +151,9 @@ function displayPreStart() {
 	ctx.font = '120px Impact';
 	ctx.textAlign = 'center';
 	ctx.fillStyle = "#000";
-	ctx.fillText("1940", (screenWidth / 2) + SHADOW_DISTANCE, (screenHeight / 3) + SHADOW_DISTANCE);
+	ctx.fillText("MIUN", (screenWidth / 2) + SHADOW_DISTANCE, (screenHeight / 3) + SHADOW_DISTANCE);
 	ctx.fillStyle = "#fff";
-	ctx.fillText("1940", (screenWidth / 2), (screenHeight / 3));
+	ctx.fillText("MIUN", (screenWidth / 2), (screenHeight / 3));
 
 	ctx.font = '42px Impact';
 	ctx.fillStyle = "#000";
